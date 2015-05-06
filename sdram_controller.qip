@@ -1,0 +1,8 @@
+# clk_0
+# sdram_0
+# null
+# bridge_0
+set_global_assignment -name TCL_FILE [file join $::quartus(ip_rootpath) University_Program/Bridges/altera_up_external_bus_to_avalon_bridge/altera_up_external_bus_to_avalon_bridge_hw.tcl]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) bridge_0.v]
+set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID 00000000000000E00000014D2ACDE189 
+ 
