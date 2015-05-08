@@ -22,6 +22,38 @@ SYSTEM sdram_controller
             pipeline = "0";
             clock_module_connection_point_for_c2h = "clk_0.clk";
          }
+         CLOCK clocks_0_sys_clk
+         {
+            frequency = "50000000";
+            source = "";
+            Is_Clock_Source = "1";
+            display_name = "sys_clk from clocks_0";
+            pipeline = "0";
+            clock_module_connection_point_for_c2h = "clocks_0.sys_clk";
+         }
+         CLOCK sys_clk
+         {
+            frequency = "50000000";
+            source = "clocks_0_sys_clk";
+            Is_Clock_Source = "0";
+            display_name = "sys_clk";
+         }
+         CLOCK clocks_0_SDRAM_CLK
+         {
+            frequency = "50000000";
+            source = "";
+            Is_Clock_Source = "1";
+            display_name = "SDRAM_CLK from clocks_0";
+            pipeline = "0";
+            clock_module_connection_point_for_c2h = "clocks_0.sdram_clk";
+         }
+         CLOCK sdram_clk
+         {
+            frequency = "50000000";
+            source = "clocks_0_SDRAM_CLK";
+            Is_Clock_Source = "0";
+            display_name = "sdram_clk";
+         }
       }
       clock_freq = "50000000";
       clock_freq = "50000000";
@@ -498,7 +530,7 @@ SYSTEM sdram_controller
          Is_Enabled = "1";
          Default_Module_Name = "sdram";
          Top_Level_Ports_Are_Enumerated = "1";
-         Clock_Source = "clk_0";
+         Clock_Source = "sys_clk";
          Has_Clock = "1";
          Disable_Simulation_Port_Wiring = "0";
          View 
@@ -538,7 +570,7 @@ SYSTEM sdram_controller
             PORT avalon_readdata
             {
                type = "readdata";
-               width = "16";
+               width = "32";
                direction = "input";
                Is_Enabled = "1";
             }
@@ -552,7 +584,7 @@ SYSTEM sdram_controller
             PORT avalon_byteenable
             {
                type = "byteenable";
-               width = "2";
+               width = "4";
                direction = "output";
                Is_Enabled = "1";
             }
@@ -573,14 +605,14 @@ SYSTEM sdram_controller
             PORT avalon_writedata
             {
                type = "writedata";
-               width = "16";
+               width = "32";
                direction = "output";
                Is_Enabled = "1";
             }
             PORT avalon_address
             {
                type = "address";
-               width = "31";
+               width = "30";
                direction = "output";
                Is_Enabled = "1";
             }
@@ -594,8 +626,8 @@ SYSTEM sdram_controller
             Do_Stream_Reads = "0";
             Do_Stream_Writes = "0";
             Max_Address_Width = "32";
-            Data_Width = "16";
-            Address_Width = "31";
+            Data_Width = "32";
+            Address_Width = "30";
             Maximum_Burst_Size = "1";
             Register_Incoming_Signals = "0";
             Register_Outgoing_Signals = "0";
@@ -614,6 +646,12 @@ SYSTEM sdram_controller
                span = "0x01000000";
                is_bridge = "0";
             }
+            Entry clocks_0/avalon_clocks_slave
+            {
+               address = "0x01000000";
+               span = "0x00000002";
+               is_bridge = "0";
+            }
          }
       }
       PORT_WIRING 
@@ -621,14 +659,14 @@ SYSTEM sdram_controller
          PORT address
          {
             type = "export";
-            width = "31";
+            width = "30";
             direction = "input";
             Is_Enabled = "1";
          }
          PORT byte_enable
          {
             type = "export";
-            width = "2";
+            width = "4";
             direction = "input";
             Is_Enabled = "1";
          }
@@ -649,7 +687,7 @@ SYSTEM sdram_controller
          PORT write_data
          {
             type = "export";
-            width = "16";
+            width = "32";
             direction = "input";
             Is_Enabled = "1";
          }
@@ -663,7 +701,7 @@ SYSTEM sdram_controller
          PORT read_data
          {
             type = "export";
-            width = "16";
+            width = "32";
             direction = "output";
             Is_Enabled = "1";
          }
@@ -678,7 +716,7 @@ SYSTEM sdram_controller
          Instantiate_In_System_Module = "1";
          Is_Bridge = "0";
          Is_Enabled = "1";
-         Clock_Source = "clk_0";
+         Clock_Source = "sys_clk";
          Has_Clock = "1";
          View 
          {
@@ -690,6 +728,118 @@ SYSTEM sdram_controller
       HDL_INFO 
       {
          Simulation_HDL_Files = "__PROJECT_DIRECTORY__/bridge_0.v";
+      }
+      WIZARD_SCRIPT_ARGUMENTS 
+      {
+      }
+   }
+   MODULE clocks_0
+   {
+      SLAVE avalon_clocks_slave
+      {
+         PORT_WIRING 
+         {
+            PORT CLOCK_50
+            {
+               type = "clk";
+               width = "1";
+               direction = "input";
+               Is_Enabled = "1";
+            }
+            PORT address
+            {
+               type = "address";
+               width = "1";
+               direction = "input";
+               Is_Enabled = "1";
+            }
+            PORT readdata
+            {
+               type = "readdata";
+               width = "8";
+               direction = "output";
+               Is_Enabled = "1";
+            }
+         }
+         SYSTEM_BUILDER_INFO 
+         {
+            Bus_Type = "avalon";
+            Write_Wait_States = "0cycles";
+            Read_Wait_States = "0cycles";
+            Hold_Time = "0cycles";
+            Setup_Time = "0cycles";
+            Is_Printable_Device = "0";
+            Address_Alignment = "dynamic";
+            Well_Behaved_Waitrequest = "0";
+            Is_Nonvolatile_Storage = "0";
+            Address_Span = "2";
+            Read_Latency = "1";
+            Is_Memory_Device = "0";
+            Maximum_Pending_Read_Transactions = "0";
+            Minimum_Uninterrupted_Run_Length = "1";
+            Accepts_Internal_Connections = "1";
+            Write_Latency = "0";
+            Is_Flash = "0";
+            Data_Width = "8";
+            Address_Width = "1";
+            Maximum_Burst_Size = "1";
+            Register_Incoming_Signals = "0";
+            Register_Outgoing_Signals = "0";
+            Interleave_Bursts = "0";
+            Linewrap_Bursts = "0";
+            Burst_On_Burst_Boundaries_Only = "0";
+            Always_Burst_Max_Burst = "0";
+            Is_Big_Endian = "0";
+            Is_Enabled = "1";
+            Clock_Source = "clk_0";
+            Has_Clock = "1";
+            MASTERED_BY bridge_0/avalon_master
+            {
+               priority = "1";
+               Offset_Address = "0x01000000";
+            }
+            Base_Address = "0x01000000";
+            Address_Group = "0";
+         }
+      }
+      PORT_WIRING 
+      {
+         PORT sys_clk
+         {
+            type = "out_clk";
+            width = "1";
+            direction = "output";
+            Is_Enabled = "1";
+         }
+         PORT SDRAM_CLK
+         {
+            type = "out_clk";
+            width = "1";
+            direction = "output";
+            Is_Enabled = "1";
+         }
+      }
+      class = "no_legacy_module";
+      class_version = "7.08110";
+      gtf_class_name = "altera_up_avalon_clocks";
+      gtf_class_version = "11.0";
+      SYSTEM_BUILDER_INFO 
+      {
+         Do_Not_Generate = "1";
+         Instantiate_In_System_Module = "1";
+         Is_Bridge = "0";
+         Is_Enabled = "1";
+         Clock_Source = "clk_0";
+         View 
+         {
+            MESSAGES 
+            {
+            }
+         }
+      }
+      HDL_INFO 
+      {
+         Simulation_HDL_Files = "__PROJECT_DIRECTORY__/clocks_0.v";
       }
       WIZARD_SCRIPT_ARGUMENTS 
       {

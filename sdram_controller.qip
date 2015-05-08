@@ -1,8 +1,12 @@
 # clk_0
 # sdram_0
-# null
 # bridge_0
 set_global_assignment -name TCL_FILE [file join $::quartus(ip_rootpath) University_Program/Bridges/altera_up_external_bus_to_avalon_bridge/altera_up_external_bus_to_avalon_bridge_hw.tcl]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) bridge_0.v]
-set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID 00000000000000E00000014D2ACDE189 
+# null
+# clocks_0
+set_global_assignment -name TCL_FILE [file join $::quartus(ip_rootpath) University_Program/altera_up_avalon_clocks/altera_up_avalon_clocks_hw.tcl]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) clocks_0.v]
+set_global_assignment -name SDC_FILE [file join $::quartus(ip_rootpath) altera/sopc_builder_ip/altera_avalon_clock_adapter/altera_avalon_clock_adapter.sdc]
+set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID 00000000000000E00000014D2F41CDC2 
  

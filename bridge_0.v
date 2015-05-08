@@ -82,9 +82,9 @@ module bridge_0 (
  *****************************************************************************/
 
 parameter	PRM_ADDR_WIDTH		= 30;
-parameter	PRM_DATA_WIDTH		= 16;
+parameter	PRM_DATA_WIDTH		= 32;
 
-parameter	PRM_BYTE_ENABLE		= 2;
+parameter	PRM_BYTE_ENABLE		= 4;
 
 /*****************************************************************************
  *                             Port Declarations                             *

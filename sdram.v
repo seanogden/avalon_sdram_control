@@ -35,14 +35,12 @@ module sdram(
 //=======================================================
 //  REG/WIRE declarations
 //=======================================================
-reg [23:0] addr_reg;
+/*reg [23:0] addr_reg;
 reg ack_reg;
 reg write_reg;
 reg [15:0] write_data_reg;
 reg read_reg;
 reg [15:0] read_data_reg;
-reg [17:0] lights;
-reg [3:0] state;
 
 wire [23:0] addr;
 wire ack;
@@ -52,29 +50,194 @@ wire read;
 wire [15:0] read_data;
 wire reset;
 wire clk;
-wire [1:0] be;
+wire [3:0] be;
 
-assign be = 2'b11;
-assign clk = CLOCK_50;
-assign reset = ~KEY[0];
+assign be = 2'b1111;
 assign addr = addr_reg;
 assign write = write_reg;
 assign write_data = write_data_reg;
 assign read = read_reg;
+*/
+
+/*
+wire wrreq;
+wire rdreq;
+wire [15:0] data;
+wire rdclk;
+wire wrclk;
+wire [15:0] q;
+wire rdempty;
+wire [8:0] rdusedw;
+wire wrfull;
+wire [8:0] wrusedw;
+
+reg [15:0] data_reg;
+reg wrreq_reg;
+reg rdreq_reg;
+reg aclr_reg;
+
+
+assign data = data_reg;
+assign wrreq = wrreq_reg;
+assign rdreq = rdreq_reg;
+assign aclr = aclr_reg;
+assign rdclk = CLOCK_50;
+assign wrclk = CLOCK_50;
+*/
+
+reg [17:0] lights;
+reg [3:0] state;
+reg [15:0] data;
+reg [15:0] data_read;
+
+wire clk, reset;
+assign clk = CLOCK_50;
+assign reset = ~KEY[0];
 assign LEDR = lights;
+assign LEDG[3:0] = state;
+assign LEDG[8:4] = 0;
+
+// SDRAM Host port
+wire [22:0] mSD_ADDR;
+wire [15:0] mSD2RS_DATA,mRS2SD_DATA;
+wire mSD_WR,mSD_RD,mSD_Done;
+
+// SDRAM Async Port
+wire [15:0] mSDR_AS_DATAOUT_1;
+wire [15:0] mSDR_AS_DATAOUT_2;
+wire [15:0] mSDR_AS_DATAOUT_3;
+wire [22:0] mSDR_AS_ADDR_1 = 0;
+wire [22:0] mSDR_AS_ADDR_2 = 0;
+wire [22:0] mSDR_AS_ADDR_3 = 0;
+wire [15:0] mSDR_AS_DATAIN_1= 0;
+wire [15:0] mSDR_AS_DATAIN_2= 0;
+wire [15:0] mSDR_AS_DATAIN_3= 0;
+wire mSDR_AS_WR_n_1 = 0;
+wire mSDR_AS_WR_n_2 = 0;
+wire mSDR_AS_WR_n_3 = 0;
+wire [1:0] mSDR_Select = 0; //never use async
+
+// SDRAM Host port regs
+reg [22:0] rSD_ADDR;
+reg [15:0] rRS2SD_DATA;
+reg rSD_WR, rSD_RD;
+
+assign mSD_ADDR = rSD_ADDR;
+assign mRS2SD_DATA = rRS2SD_DATA;
+assign mSD_WR = rSD_WR;
+assign mSD_RD = rSD_RD;
 
 //=======================================================
 //  Structural coding
 //=======================================================
-  sdram_controller sd1
+
+Multi_Sdram u3 ( 
+
+// Host Side (USE THESE TO INTERACT WITH DRAM)
+mSD2RS_DATA,mRS2SD_DATA,mSD_ADDR,mSD_RD,mSD_WR,mSD_Done,
+
+
+//THESE ARE NOT USED!!
+// Async Side 1
+mSDR_AS_DATAOUT_1,mSDR_AS_DATAIN_1,mSDR_AS_ADDR_1,mSDR_AS_WR_n_1,
+// Async Side 2
+mSDR_AS_DATAOUT_2,mSDR_AS_DATAIN_2,mSDR_AS_ADDR_2,mSDR_AS_WR_n_2,
+// Async Side 3
+mSDR_AS_DATAOUT_3,mSDR_AS_DATAIN_3,mSDR_AS_ADDR_3,mSDR_AS_WR_n_3,
+
+
+// Control Signals
+//mSDR_Select comes from CMD_Decode
+mSDR_Select,CLOCK_50,KEY[0], //currently key 0 is a reset key...should probably remove it
+// SDRAM Interface (Actual pins to SDRAM IC)
+DRAM_ADDR,DRAM_BA,DRAM_CS_N,DRAM_CKE,DRAM_RAS_N,
+DRAM_CAS_N,DRAM_WE_N,DRAM_DQ,DRAM_DQM,DRAM_CLK);
+
+
+	parameter do_write = 4'd1,
+				 finish_write = 4'd2,
+				 do_read = 4'd3,
+				 finish_read = 4'd4,
+				 done = 4'd5;
+				 
+
+	always@(posedge clk) begin
+		if (reset) begin
+			rSD_ADDR <= 0;
+			rRS2SD_DATA <= 0;
+			rSD_WR <= 0;
+			rSD_RD <= 0;
+			state <= do_write;
+			data_read <= 0;
+			data <= 0;
+		end
+		
+		else begin
+			case(state)
+				do_write: begin
+					rSD_WR <= 1;
+					rSD_RD <= 0;
+					rSD_ADDR <= rSD_ADDR + 23'd1;
+					rRS2SD_DATA <= rRS2SD_DATA + 16'd1;
+					state <= finish_write;
+				end
+				
+				finish_write: begin
+					if (mSD_Done) begin
+						if (rRS2SD_DATA < 16'd100) state <= do_write;
+						else begin
+							rSD_WR <= 0;
+							rSD_RD <= 0;
+							state <= do_read;
+							rSD_ADDR <= 0;
+							data <= 0;
+						end
+					end
+				end
+				
+				do_read: begin
+					rSD_WR <= 0;
+					rSD_RD <= 1;
+					rSD_ADDR <= rSD_ADDR + 23'd1;
+					data <= data + 16'd1;
+					state <= finish_read;
+				end
+				
+				finish_read: begin
+					if (mSD_Done) begin				
+						rSD_WR <= 0;
+						rSD_RD <= 0;
+						data_read <= mSD2RS_DATA;
+						if (data < 16'd2) state <= do_read;
+						else begin
+							state <= done;
+						end
+					end
+				end
+				
+				done: state <= done;
+			endcase
+		end
+			
+	end
+	 
+	always@(posedge clk) begin
+		if (~KEY[1]) lights[15:0] <= data_read;
+		else lights[15:0] <= data;
+	end
+
+/*  
+sdram_controller sd1
     (
       .acknowledge_from_the_bridge_0 (ack),
       .address_to_the_bridge_0       (addr),
-      .byte_enable_to_the_bridge_0   (byte_enable_to_the_bridge_0),
+      .byte_enable_to_the_bridge_0   (be),
       .clk_0                         (clk),
+      .sdram_clk                     (DRAM_CLK),
+      .sys_clk                       (),
       .read_data_from_the_bridge_0   (read_data),
       .read_to_the_bridge_0          (read),
-      .reset_n                       (reset_n),
+      .reset_n                       (reset),
       .write_data_to_the_bridge_0    (write_data),
       .write_to_the_bridge_0         (write),
       .zs_addr_from_the_sdram_0      (DRAM_ADDR),
@@ -87,7 +250,83 @@ assign LEDR = lights;
       .zs_ras_n_from_the_sdram_0     (DRAM_RAS_N),
       .zs_we_n_from_the_sdram_0      (DRAM_WE_N)
     );
+*/
+
+/*
+Sdram_WR_FIFO wf1(
+	aclr,
+	data,
+	rdclk,
+	rdreq,
+	wrclk,
+	wrreq,
+	q,
+	rdempty,
+	rdusedw,
+	wrfull,
+	wrusedw);
 	
+	parameter do_write = 4'd1,
+				 do_read = 4'd2,
+				 do_read2 = 4'd3,
+				 done = 4'd4;
+				 
+	always@(posedge clk) begin
+		if (reset) begin
+			data_reg <= 0;
+			wrreq_reg <= 0;
+			rdreq_reg <= 0;
+			aclr_reg <= 1;
+			state <= do_write;
+			lights <= 0;
+		end
+		
+		else begin
+			case(state)
+				do_write: begin
+					aclr_reg <= 0;
+					wrreq_reg <= 1;
+					rdreq_reg <= 0;
+					data_reg <= data_reg + 16'd1;
+					
+					if (data_reg < 16'd100) state <= do_write;
+					else begin
+						state <= do_read;
+						data_reg <= 0;
+					end
+				end
+				
+				do_read: begin
+					aclr_reg <= 0;
+					wrreq_reg <= 0;
+					rdreq_reg <= 1;
+					state <= do_read2;
+				end
+				
+				do_read2: begin
+					aclr_reg <=0;
+					wrreq_reg <= 0;
+					rdreq_reg <= 1;
+					data_reg <= data_reg + 16'd1;
+					
+					if (data != q) begin
+						//lights = data - q;
+						lights[0] = 1;
+					end
+					
+					if (data_reg == 16'd100) state <= done;
+					else state <= do_read2;
+					
+				end
+				
+				done: state <= done;
+			endcase
+		end
+			
+	end
+	*/
+				 
+/*				 
 	parameter begin_write = 4'd1,
 				 wait_ack_write = 4'd2,
 				 begin_read = 4'd3,
@@ -112,7 +351,7 @@ assign LEDR = lights;
 				begin_write: begin
 					addr_reg <= 0;
 					write_reg <= 1;
-					write_data_reg <= 16'hdead;
+					write_data_reg <= 32'hdeadbeef;
 					state <= wait_ack_write;
 				end
 				
@@ -140,7 +379,7 @@ assign LEDR = lights;
 				end
 				
 				finish_read: begin
-					if (read_data_reg == 16'hdead) lights <= 18'b111111111111111111;
+					if (read_data_reg == 32'hdeadbeef) lights <= 18'b111111111111111111;
 					state <= done;
 				end
 				
@@ -148,5 +387,6 @@ assign LEDR = lights;
 			endcase
 		end
 	end
+	*/
 
 endmodule

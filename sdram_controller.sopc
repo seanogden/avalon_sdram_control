@@ -2,6 +2,14 @@
 <system name="sdram_controller">
  <parameter name="bonusData"><![CDATA[bonusData 
 {
+   element clocks_0.avalon_clocks_slave
+   {
+      datum baseAddress
+      {
+         value = "16777216";
+         type = "long";
+      }
+   }
    element bridge_0
    {
       datum _sortIndex
@@ -18,6 +26,22 @@
          type = "int";
       }
    }
+   element clocks_0
+   {
+      datum _sortIndex
+      {
+         value = "3";
+         type = "int";
+      }
+   }
+   element sdram_0.s1
+   {
+      datum baseAddress
+      {
+         value = "0";
+         type = "long";
+      }
+   }
    element sdram_0
    {
       datum _sortIndex
@@ -31,6 +55,25 @@
          type = "String";
       }
    }
+   element clocks_0.sdram_clk
+   {
+      datum _clockDomain
+      {
+         value = "sdram_clk";
+         type = "String";
+      }
+   }
+   element sdram_controller
+   {
+   }
+   element clocks_0.sys_clk
+   {
+      datum _clockDomain
+      {
+         value = "sys_clk";
+         type = "String";
+      }
+   }
 }
 ]]></parameter>
  <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
@@ -41,10 +84,10 @@
  <parameter name="globalResetBus" value="true" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="maxAdditionalLatency" value="0" />
- <parameter name="projectName" value="sdram" />
+ <parameter name="projectName" value="sdram.qpf" />
  <parameter name="sopcBorderPoints" value="true" />
- <parameter name="systemHash" value="-1411456487" />
- <parameter name="timeStamp" value="1430942218864" />
+ <parameter name="systemHash" value="3950783623" />
+ <parameter name="timeStamp" value="1431016934060" />
  <module kind="clock_source" version="11.0" enabled="1" name="clk_0">
   <parameter name="clockFrequency" value="50000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -86,16 +129,24 @@
    name="bridge_0">
   <parameter name="addr_size" value="1024" />
   <parameter name="addr_size_multiplier" value="Mbytes" />
-  <parameter name="data_size" value="16" />
+  <parameter name="data_size" value="32" />
   <parameter name="AUTO_CLOCK_RESET_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone IV E" />
  </module>
- <connection kind="clock" version="11.0" start="clk_0.clk" end="sdram_0.clk" />
- <connection
-   kind="clock"
+ <module
+   kind="altera_up_avalon_clocks"
    version="11.0"
-   start="clk_0.clk"
-   end="bridge_0.clock_reset" />
+   enabled="1"
+   name="clocks_0">
+  <parameter name="board" value="DE2" />
+  <parameter name="sys_clk_freq" value="50" />
+  <parameter name="sdram_clk" value="true" />
+  <parameter name="vga_clk" value="false" />
+  <parameter name="audio_clk" value="false" />
+  <parameter name="audio_clk_freq" value="12.288" />
+  <parameter name="AUTO_CLK_IN_PRIMARY_CLOCK_RATE" value="50000000" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone IV E" />
+ </module>
  <connection
    kind="avalon"
    version="11.0"
@@ -104,4 +155,27 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
  </connection>
+ <connection
+   kind="clock"
+   version="11.0"
+   start="clk_0.clk"
+   end="clocks_0.clk_in_primary" />
+ <connection
+   kind="avalon"
+   version="11.0"
+   start="bridge_0.avalon_master"
+   end="clocks_0.avalon_clocks_slave">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x01000000" />
+ </connection>
+ <connection
+   kind="clock"
+   version="11.0"
+   start="clocks_0.sys_clk"
+   end="bridge_0.clock_reset" />
+ <connection
+   kind="clock"
+   version="11.0"
+   start="clocks_0.sys_clk"
+   end="sdram_0.clk" />
 </system>
