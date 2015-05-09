@@ -29,9 +29,9 @@ parameter	SC_BL		=	1;
 ////////////	100 MHz	///////////////
 parameter	INIT_PER	=	24000;
 parameter	REF_PER		=	1024;
-parameter	SC_CL		=	3;    //CAS latency (interval between a READ and WRITE)
-parameter	SC_RCD		=	3; //Active command to read/write command delay
-parameter	SC_RRD		=	7; //Command period (minimum time interval between successive ACTIVE commands)
+parameter	SC_CL		=	3;
+parameter	SC_RCD		=	3;
+parameter	SC_RRD		=	7;
 parameter	SC_PM		=	1;
 parameter	SC_BL		=	1;
 ///////////////////////////////////////

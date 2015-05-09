@@ -4,10 +4,10 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE115F29C7
-set_global_assignment -name TOP_LEVEL_ENTITY "sdram"
-set_global_assignment -name ORIGINAL_QUARTUS_VERSION 14.0
+set_global_assignment -name TOP_LEVEL_ENTITY "DE2_115"
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 12.0
 set_global_assignment -name LAST_QUARTUS_VERSION 11.0
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "15:44:54 MAY 06,2015"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "18:36:44 MAY 08,2015"
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 780
 set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 7
@@ -92,6 +92,42 @@ set_location_assignment PIN_N21 -to KEY[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY[2]
 set_location_assignment PIN_R24 -to KEY[3]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY[3]
+
+#============================================================
+# I2C for Tv-Decoder 
+#============================================================
+set_location_assignment PIN_B7 -to I2C_SCLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I2C_SCLK
+set_location_assignment PIN_A8 -to I2C_SDAT
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I2C_SDAT
+
+#============================================================
+# TV Decoder
+#============================================================
+set_location_assignment PIN_E5 -to TD_HS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_HS
+set_location_assignment PIN_E4 -to TD_VS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_VS
+set_location_assignment PIN_B14 -to TD_CLK27
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_CLK27
+set_location_assignment PIN_G7 -to TD_RESET_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_RESET_N
+set_location_assignment PIN_E8 -to TD_DATA[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[0]
+set_location_assignment PIN_A7 -to TD_DATA[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[1]
+set_location_assignment PIN_D8 -to TD_DATA[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[2]
+set_location_assignment PIN_C7 -to TD_DATA[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[3]
+set_location_assignment PIN_D7 -to TD_DATA[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[4]
+set_location_assignment PIN_D6 -to TD_DATA[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[5]
+set_location_assignment PIN_E7 -to TD_DATA[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[6]
+set_location_assignment PIN_F7 -to TD_DATA[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to TD_DATA[7]
 
 #============================================================
 # SDRAM
@@ -219,18 +255,17 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_ADDR[12]
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
-set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
-set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
-set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
-set_global_assignment -name SOURCE_FILE Sdram_Params.h
-set_global_assignment -name VERILOG_FILE Sdram_Multiplexer.v
-set_global_assignment -name VERILOG_FILE sdram_controller.v
-set_global_assignment -name VERILOG_FILE Multi_Sdram.v
-set_global_assignment -name VERILOG_FILE Sdram_PLL.v
-set_global_assignment -name VERILOG_FILE sdr_data_path.v
-set_global_assignment -name VERILOG_FILE control_interface.v
-set_global_assignment -name VERILOG_FILE command.v
-set_global_assignment -name VERILOG_FILE Sdram_WR_FIFO.v
-set_global_assignment -name SDC_FILE sdram.SDC
+set_global_assignment -name VERILOG_FILE DE2_115.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/Sdram_WR_FIFO.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/Sdram_RD_FIFO.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/Sdram_PLL.v
+set_global_assignment -name SOURCE_FILE Sdram_Control_4Port/Sdram_Params.h
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/sdram_controller.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/Sdram_Control_4Port.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/sdr_data_path.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/control_interface.v
+set_global_assignment -name VERILOG_FILE Sdram_Control_4Port/command.v
+set_global_assignment -name VERILOG_FILE test_sdram.v
+set_global_assignment -name SDC_FILE DE2_115.SDC
+set_global_assignment -name QIP_FILE Sdram_Control_4Port/Sdram_PLL.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

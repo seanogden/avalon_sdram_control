@@ -84,7 +84,8 @@ reg								PM_DONE;
 reg								Read;
 reg								Write;
 reg								Pre_DONE;
-reg								mDONE;					 //SDRAM Internal Done
+reg								WR_DONE;				//Flag write done, 1 pulse SDR_CLK
+reg								RD_DONE;
 
 reg     [`DSIZE-1:0]            DATAOUT;                 //Data output
 reg     [`DSIZE-1:0]            mDATAOUT;                 //Data output
@@ -169,7 +170,7 @@ sdr_data_path data_path1(
                 .CLK(CLK),
                 .RESET_N(RESET_N),
                 .DATAIN(DATAIN),
-                .DM(DM),
+                .DM(DM), // 2'b00
                 .DQOUT(DQOUT),
                 .DQM(IDQM)
                 );
@@ -191,13 +192,13 @@ end
 
 assign  DQ = oe ? DQOUT : `DSIZE'hzzzz;
 assign	ACT	=	Read | Write;
+wire mDONE = RD_DONE | WR_DONE;
 
 always@(posedge CLK or negedge RESET_N)
 begin
 	if(RESET_N==0)
 	begin
 		CMD			<=  0;
-		mDONE		<=  0;
 		ST			<=  0;
 		Pre_RD		<=  0;
 		Pre_WR		<=  0;
@@ -205,6 +206,8 @@ begin
 		Write		<=	0;
 		OUT_VALID	<=	0;
 		IN_REQ		<=	0;
+		RD_DONE		<=  0;
+		WR_DONE		<=  0;
 	end
 	else
 	begin
@@ -234,38 +237,42 @@ begin
 					ST<=2;
 				end
 			end
-		default:	ST<=ST+1;
+		default:	begin	
+				if(ST!=SC_CL+SC_RCD+LENGTH+1)
+				ST<=ST+1;
+				else
+				ST<=0;
+			end
 		endcase
 	
-		if(ST==SC_CL+SC_RCD+2)
-		mDONE	<=	1;
-		else if(ST==SC_CL+SC_RCD+LENGTH+2)
-		ST		<=	0;
-
 		if(Read)
 		begin
-			if(ST==SC_CL+SC_RCD+2)
+			if(ST==SC_CL+SC_RCD+1)
 			OUT_VALID	<=	1;
-			else if(ST==SC_CL+SC_RCD+LENGTH+2)
+			else if(ST==SC_CL+SC_RCD+LENGTH+1)
 			begin
 				OUT_VALID	<=	0;
 				Read		<=	0;
+				RD_DONE <= 1;
 			end
 		end
+		else
+		RD_DONE <= 0;
 		
 		if(Write)
 		begin
 			if(ST==SC_CL-1)
 			IN_REQ	<=	1;
 			else if(ST==SC_CL+LENGTH-1)
+			IN_REQ	<=	0;
+			else if(ST==SC_CL+SC_RCD+LENGTH)
 			begin
-				IN_REQ	<=	0;
 				Write	<=	0;
+				WR_DONE <= 1;
 			end
 		end
-
-		if(!WR && !RD)
-		mDONE<=0;
+		else
+		WR_DONE <= 0;
 
 	end
 end
